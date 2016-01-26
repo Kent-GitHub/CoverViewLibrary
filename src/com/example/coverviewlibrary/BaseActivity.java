@@ -1,10 +1,8 @@
 package com.example.coverviewlibrary;
 
-import org.androidannotations.annotations.AfterViews;
-import org.androidannotations.annotations.EActivity;
-
 import android.app.Activity;
 import android.graphics.Rect;
+import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
@@ -15,7 +13,7 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
 import android.widget.FrameLayout;
-@EActivity
+
 public class BaseActivity extends Activity{
 	/**
 	 * 用来遮盖的View的实例
@@ -49,6 +47,21 @@ public class BaseActivity extends Activity{
 	 * 设置刷新监听事件
 	 * @param listener
 	 */
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		init();
+	}
+	
+	private void init() {
+		DisplayMetrics dm = new DisplayMetrics();       
+		getWindowManager().getDefaultDisplay().getMetrics(dm);       
+		screenWidth = dm.widthPixels;       
+		screenHeight = dm.heightPixels; 
+		mRootView=(FrameLayout) getWindow().getDecorView().findViewById(android.R.id.content);
+	}
+
 	public void setOnTapRefreshListener(OnTapRefreshListener listener){
 		mOnTapRefreshListener=listener;
 	}
@@ -184,14 +197,6 @@ public class BaseActivity extends Activity{
 		mCoverView.setLoadingText("加载失败，请检查网络连接");
 	}
 	
-	@AfterViews
-	protected void baseActyAfterViews(){
-		DisplayMetrics dm = new DisplayMetrics();       
-		getWindowManager().getDefaultDisplay().getMetrics(dm);       
-		screenWidth = dm.widthPixels;       
-		screenHeight = dm.heightPixels; 
-		mRootView=(FrameLayout) getWindow().getDecorView().findViewById(android.R.id.content);
-	}
 	/**
 	 * 点击CoverView刷新接口
 	 * @author kent
@@ -206,7 +211,7 @@ public class BaseActivity extends Activity{
 	 */
 	private CoverView getCoverView(){
 		if (mCoverView==null) {
-			mCoverView=CoverView_.build(getApplicationContext());
+			mCoverView=CoverView.build(getApplicationContext(),mRootView);
 			mCoverView.mImageView.setOnClickListener(new OnClickListener() {
 				
 				@Override
@@ -230,5 +235,4 @@ public class BaseActivity extends Activity{
 		}
 		return mCoverView;
 	}
-	
 }

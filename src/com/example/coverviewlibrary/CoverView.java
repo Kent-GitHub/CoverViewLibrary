@@ -1,49 +1,44 @@
 package com.example.coverviewlibrary;
 
-import org.androidannotations.annotations.AfterViews;
-import org.androidannotations.annotations.EViewGroup;
-import org.androidannotations.annotations.ViewById;
-
 import com.example.coverviewlibrary.R;
 
 import android.content.Context;
 import android.graphics.Color;
 import android.util.AttributeSet;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-@EViewGroup(resName="cover_view_layout")
-public class CoverView extends RelativeLayout{
-	@ViewById(resName="cover_view_info")
-	public TextView mTextView;
 
-	@ViewById(resName="cover_view_image")
+public class CoverView extends RelativeLayout{
+	
+	public TextView mTextView;
+		
 	public ImageView mImageView;
 	
-	@ViewById(resName="cover_view_progressBar")
 	public ProgressBar mProgressBar;
 	
-	@ViewById(resName="cover_view_btn_refresh")
-	public Button btn_refresh;
+	public Button mButton;
 	
 	public CoverView(Context context) {
 		super(context);
-		init();
+		init(context);
 	}
 
 	public CoverView(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		init();
+		init(context);
 	}
 
 	public CoverView(Context context, AttributeSet attrs, int defStyleAttr) {
 		super(context, attrs, defStyleAttr);
-		init();
+		init(context);
 	}
 	
 	public void showImageView(){
@@ -62,23 +57,30 @@ public class CoverView extends RelativeLayout{
 		mTextView.setText(text);
 	}
 
-	@AfterViews
-	void afterViews(){
-		mImageView.setImageResource(R.drawable.refresh_loadfailed);
-		showImageView();
-		hideProgressBar();
-	}
-
-	private void init() {
-		setBackgroundColor(Color.parseColor("#faf0f0f0"));
+	private void init(Context context) {
+		if (inflateView==null) {
+			return;
+		}
+		mTextView=(TextView) inflateView.findViewById(R.id.cover_view_info);
+		mImageView=(ImageView) inflateView.findViewById(R.id.cover_view_image);
+		mProgressBar=(ProgressBar) inflateView.findViewById(R.id.cover_view_progressBar);
+		mButton=(Button) inflateView.findViewById(R.id.cover_view_btn_refresh);
+		this.setBackgroundColor(Color.parseColor("#faf0f0f0"));
 		this.setOnTouchListener(new OnTouchListener() {
 			
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
-				// TODO Auto-generated method stub
 				return true;
 			}
 		});
+	}
+	
+	private static View inflateView;
+	public static CoverView build(Context context,ViewGroup view){
+		inflateView= LayoutInflater.from(context).inflate(R.layout.cover_view_layout,view,false);
+		CoverView instance=new CoverView(context);
+		instance.addView(inflateView);
+		return instance;
 	}
 	
 }

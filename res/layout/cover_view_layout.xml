@@ -1,46 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
-    
-	<LinearLayout 
-	    android:layout_height="match_parent"
-	    android:layout_width="match_parent"
-	    android:orientation="vertical"
-	    android:gravity="center">
-	    <LinearLayout 
-	        android:layout_height="0dp"
-	        android:layout_weight="1"
-	        android:layout_width="match_parent"
-	        android:orientation="vertical"
-	        android:gravity="center">
+    android:gravity="center">
 
-	        <ProgressBar
-	            android:id="@+id/cover_view_progressBar"
-	            style="?android:attr/progressBarStyleLarge"
-	            android:layout_width="wrap_content"
-	            android:layout_height="123dp" />
-	        
-	        <ImageView 
-	            android:id="@+id/cover_view_image"
-	            android:layout_height="123dp"
-	            android:layout_width="wrap_content"
-	            android:src="@drawable/refresh_loadfailed"/>
-	        
-	        <TextView 
-	            android:id="@+id/cover_view_info"
-	            android:layout_height="wrap_content"
-	            android:layout_width="wrap_content"
-	            android:textColor="#000000"
-	            android:text="加载失败，请检查网路连接"/>
-	        
-	    </LinearLayout>
-	    <Button 
-	        android:id="@+id/cover_view_btn_refresh"
-	        android:layout_height="wrap_content"
-	        android:layout_width="wrap_content"
-	        android:text="重新加载"/>
-	</LinearLayout>
-    
-</LinearLayout>
+    <ProgressBar
+        android:layout_centerHorizontal="true"
+        android:id="@+id/cover_view_progressBar"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="123dp" />
+		
+    <ImageView
+        android:layout_centerHorizontal="true"
+        android:id="@+id/cover_view_image"
+        android:layout_width="wrap_content"
+        android:layout_height="123dp"
+        android:layout_below="@id/cover_view_progressBar"
+        android:src="@drawable/refresh_loadfailed" />
+
+    <TextView
+        android:layout_centerHorizontal="true"
+        android:id="@+id/cover_view_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="加载失败，请检查网路连接"
+        android:layout_below="@id/cover_view_image"
+        android:textColor="#000000" />
+
+    <Button
+        android:layout_centerHorizontal="true"
+        android:id="@+id/cover_view_btn_refresh"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+         android:layout_below="@id/cover_view_info"
+        android:text="重新加载" />
+
+</RelativeLayout>
