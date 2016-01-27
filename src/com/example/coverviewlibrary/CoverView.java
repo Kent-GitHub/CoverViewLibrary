@@ -11,12 +11,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 
-public class CoverView extends RelativeLayout{
+public class CoverView extends LinearLayout{
 	
 	public TextView mTextView;
 		
@@ -41,22 +41,43 @@ public class CoverView extends RelativeLayout{
 		init(context);
 	}
 	
-	public void showImageView(){
-		mImageView.setVisibility(View.VISIBLE);
-	}
-	public void hideImageView(){
-		mImageView.setVisibility(View.GONE);
-	}
-	public void showProgressBar(){
+	public CoverView showProgressBar(){
 		mProgressBar.setVisibility(View.VISIBLE);
+		return this;
 	}
-	public void hideProgressBar(){
+	public CoverView showImageView(){
+		mImageView.setVisibility(View.VISIBLE);
+		return this;
+	}
+	public CoverView showTextView(){
+		mTextView.setVisibility(View.VISIBLE);
+		return this;
+	}
+	public CoverView showButton(){
+		mButton.setVisibility(View.VISIBLE);
+		return this;
+	}
+	public CoverView hideProgressBar(){
 		mProgressBar.setVisibility(View.GONE);
-	}
-	public void setLoadingText(String text){
-		mTextView.setText(text);
+		return this;
 	}
 
+	public CoverView hideImageView(){
+		mImageView.setVisibility(View.GONE);
+		return this;
+	}
+	public CoverView hideTextView(){
+		mTextView.setVisibility(View.GONE);
+		return this;
+	}
+	public CoverView hideButton(){
+		mButton.setVisibility(View.GONE);
+		return this;
+	}
+	public CoverView setLoadingText(String text){
+		mTextView.setText(text);
+		return this;
+	}
 	private void init(Context context) {
 		if (inflateView==null) {
 			return;
@@ -66,18 +87,13 @@ public class CoverView extends RelativeLayout{
 		mProgressBar=(ProgressBar) inflateView.findViewById(R.id.cover_view_progressBar);
 		mButton=(Button) inflateView.findViewById(R.id.cover_view_btn_refresh);
 		this.setBackgroundColor(Color.parseColor("#faf0f0f0"));
-		this.setOnTouchListener(new OnTouchListener() {
-			
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				return true;
-			}
-		});
+		hideImageView();
+		hideButton();
 	}
 	
-	private static View inflateView;
+	private static LinearLayout inflateView;
 	public static CoverView build(Context context,ViewGroup view){
-		inflateView= LayoutInflater.from(context).inflate(R.layout.cover_view_layout,view,false);
+		inflateView= (LinearLayout) LayoutInflater.from(context).inflate(R.layout.cover_view_layout,view,false);
 		CoverView instance=new CoverView(context);
 		instance.addView(inflateView);
 		return instance;

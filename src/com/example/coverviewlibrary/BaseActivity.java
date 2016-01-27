@@ -1,20 +1,29 @@
 package com.example.coverviewlibrary;
 
+import android.R.integer;
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnLayoutChangeListener;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
 import android.widget.FrameLayout;
+import android.widget.FrameLayout.LayoutParams;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 public class BaseActivity extends Activity{
+	
 	/**
 	 * 用来遮盖的View的实例
 	 */
@@ -32,14 +41,6 @@ public class BaseActivity extends Activity{
 	 */
 	public boolean isTapRefreshing;
 	/**
-	 * 屏幕宽度
-	 */
-	protected int screenWidth;
-	/**
-	 * 屏幕高度
-	 */
-	protected int screenHeight;
-	/**
 	 * 点击CoverView刷新监听事件实例
 	 */
 	private OnTapRefreshListener mOnTapRefreshListener;
@@ -55,91 +56,52 @@ public class BaseActivity extends Activity{
 	}
 	
 	private void init() {
-		DisplayMetrics dm = new DisplayMetrics();       
-		getWindowManager().getDefaultDisplay().getMetrics(dm);       
-		screenWidth = dm.widthPixels;       
-		screenHeight = dm.heightPixels; 
 		mRootView=(FrameLayout) getWindow().getDecorView().findViewById(android.R.id.content);
 	}
 
 	public void setOnTapRefreshListener(OnTapRefreshListener listener){
 		mOnTapRefreshListener=listener;
 	}
+
 	/**
-	 * 遮住在坐标Y以下的部分
-	 * @param topY
+	 * 遮住view所在的区域
+	 * @param view
 	 */
-	public void cover(int topY){
-		cover(topY,screenHeight);
-	}
-	/**
-	 * 遮住topY以下bottomY以上的部分
-	 * @param topY
-	 * @param bottomY
-	 */
-	public void cover(int topY,int bottomY){
-		cover(topY,bottomY,0,screenWidth);
-	}
-	/**
-	 * 遮住topY以下bottomY以上、leftX右边rightX左边的部分
-	 * @param topY
-	 * @param bottomY
-	 * @param leftX
-	 * @param rightX
-	 */
-	public void cover(int topY,int bottomY,int leftX,int rightX){
+	public void cover(final View view){
+		if (view==null) {
+			return;
+		}
 		removeCover();
-		
 		//状态栏高度
 		Rect frame = new Rect();  
 		getWindow().getDecorView().getWindowVisibleDisplayFrame(frame);  
 		int statusBarHeight = frame.top;
 		//ActionBar高度
 		int actionBarHeight = getActionBar().getHeight();
-		getCoverView();
-		mCoverView.setX(leftX);
-		mCoverView.setY(topY);
-		int height=bottomY-topY-actionBarHeight-statusBarHeight;
-		int width=rightX-leftX;
-		Log.d(mCoverViewTag, "height:"+height+", "+"width:"+width);
-		LayoutParams lp=new LayoutParams(width,height);
-		mCoverView.setLayoutParams(lp);
-		
-		mCoverView.setTag(mCoverViewTag);
-		
-		mRootView.addView(mCoverView);
-		
-	}
-	/**
-	 * 遮住v所在的区域
-	 * @param v
-	 */
-	public void cover(View v){
-		removeCover();
-		
-		//状态栏高度
-		Rect frame = new Rect();  
-		getWindow().getDecorView().getWindowVisibleDisplayFrame(frame);  
-		int statusBarHeight = frame.top;
-		//ActionBar高度
-		int actionBarHeight = getActionBar().getHeight();
-		int height=v.getHeight();
-		int width=v.getWidth();
-		
 		int[] location =new int[2];
-		v.getLocationOnScreen(location);
-		
-		getCoverView();
+		view.getLocationOnScreen(location);
+		initCoverView();
 		mCoverView.setX(location[0]);
 		mCoverView.setY(location[1]-statusBarHeight-actionBarHeight);
-		
+		int height=view.getHeight();
+		int width=view.getWidth();
 		LayoutParams lp=new LayoutParams(width,height);
 		mCoverView.setLayoutParams(lp);
-		
 		mCoverView.setTag(mCoverViewTag);
-		
 		mRootView.addView(mCoverView);
-		
+		stateRefreshLoading();
+		view.addOnLayoutChangeListener(new OnLayoutChangeListener() {
+			
+			@Override
+			public void onLayoutChange(View v, int left, int top, int right,
+					int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+				initCoverView();
+				mCoverView.setX(left);
+				mCoverView.setY(top);
+				LayoutParams lp=new LayoutParams(right-left,bottom-top);
+				mCoverView.setLayoutParams(lp);
+			}
+		});
 	}
 	/**
 	 * 移除mCoverView
@@ -174,7 +136,7 @@ public class BaseActivity extends Activity{
 	/**
 	 * 更新CoverView状态为正在刷新
 	 */
-	public void refreshing(){
+	public void stateRefreshLoading(){
 		isTapRefreshing=true;
 		mCoverView.showProgressBar();
 		mCoverView.hideImageView();
@@ -183,18 +145,29 @@ public class BaseActivity extends Activity{
 	/**
 	 * 更新CoverView状态为刷新成功
 	 */
-	public void refreshSucceeded(){
+	public void stateRefreshSucceeded(){
 		isTapRefreshing=false;
 		removeCoverWithAnimation();
 	}
 	/**
 	 * 更新CoverView状态为刷新失败
 	 */
-	public void refreshFailed(){
+	public void stateRefreshFailed(){
 		isTapRefreshing=false;
 		mCoverView.hideProgressBar();
+		mCoverView.mImageView.setImageResource(R.drawable.refresh_loadfailed);
 		mCoverView.showImageView();
-		mCoverView.setLoadingText("加载失败，请检查网络连接");
+		mCoverView.setLoadingText("请求超时，请检查网络连接");
+	}
+	/**
+	 * 更新CoverView状态为没有数据
+	 */
+	public void stateRefreshNoDatas(){
+		isTapRefreshing=false;
+		mCoverView.hideProgressBar();
+		mCoverView.mImageView.setImageResource(R.drawable.refresh_empty);
+		mCoverView.showImageView();
+		mCoverView.setLoadingText("暂无数据");
 	}
 	
 	/**
@@ -206,30 +179,67 @@ public class BaseActivity extends Activity{
 		void onTapRefresh();
 	}
 	/**
-	 * 实例化mCoverView并为其子View设置点击事件
+	 * 设置CoverView图片资源
+	 * @param resId
+	 */
+	public CoverView setCoverViewImageResourse(int resId){
+		mCoverView.mImageView.setImageResource(resId);
+		return mCoverView;
+	}
+	/**
+	 * 设置CoverView图片Drawable
+	 * @param drawable
+	 */
+	public CoverView setCoverViewImageDrawable(Drawable drawable){
+		mCoverView.mImageView.setImageDrawable(drawable);
+		return mCoverView;
+	}
+	/**
+	 * 设置CoverView图片bitmap
+	 * @param bm
+	 */
+	public CoverView setCoverViewImageBitmap(Bitmap bm){
+		mCoverView.mImageView.setImageBitmap(bm);
+		return mCoverView;
+	}
+	/**
+	 * 设置CoverView提示文字
+	 * @param text
+	 */
+	public CoverView setCoverViewText(String text){
+		mCoverView.mTextView.setText(text);
+		return mCoverView;
+	}
+	/**
+	 * 设置CoverView背景色
+	 * @param color
+	 */
+	public CoverView setCoverViewBackgroundColor(int color){
+		mCoverView.setBackgroundColor(color);
+		return mCoverView;
+	}
+	
+	/**
+	 * 实例化mCoverView并拦截点击事件
 	 * @return
 	 */
-	private CoverView getCoverView(){
+	private CoverView initCoverView(){
+		
 		if (mCoverView==null) {
 			mCoverView=CoverView.build(getApplicationContext(),mRootView);
-			mCoverView.mImageView.setOnClickListener(new OnClickListener() {
+			mCoverView.setOnTouchListener(new OnTouchListener() {
 				
 				@Override
-				public void onClick(View v) {
-					if (mOnTapRefreshListener!=null&&!isTapRefreshing) {
-						mOnTapRefreshListener.onTapRefresh();
-						refreshing();
+				public boolean onTouch(View v, MotionEvent event) {
+					switch (event.getAction()) {
+					case MotionEvent.ACTION_UP:
+						if (mOnTapRefreshListener!=null) {
+							mOnTapRefreshListener.onTapRefresh();
+							stateRefreshLoading();
+						}
+						break;
 					}
-				}
-			});
-			mCoverView.mTextView.setOnClickListener(new OnClickListener() {
-				
-				@Override
-				public void onClick(View v) {
-					if (mOnTapRefreshListener!=null&&!isTapRefreshing) {
-						mOnTapRefreshListener.onTapRefresh();
-						refreshing();
-					}
+					return true;
 				}
 			});
 		}
