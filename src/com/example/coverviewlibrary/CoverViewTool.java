@@ -4,12 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
-import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
-import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnLayoutChangeListener;
@@ -21,6 +18,7 @@ import android.view.animation.Animation.AnimationListener;
 import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 public class CoverViewTool{
 	public static final int REFRESH_Loading = 0;
@@ -28,11 +26,15 @@ public class CoverViewTool{
 	public static final int REFRESH_NoDatas = 2;
 	public static final int REFRESH_Crash = 3;
 	public static final int REFRESH_Succeed = 4;
-
+	
 	private int refreshNetErrorResID = R.drawable.refresh_loadfailed;
 	private int refreshNoDatasResID = R.drawable.refresh_empty;
-	private int refreshCrashResID = R.drawable.refresh_loadfailed;
-
+	private int refreshCrashResID = R.drawable.refresh_crash;
+	
+	private String refreshNetErrorText = "请求超时，请检查网络连接";
+	private String refreshNoDatasText = "没有数据";
+	private String refreshCrashText = "服务器崩溃了";
+	
 	/**
 	 * 用来遮盖的View的实例
 	 */
@@ -53,29 +55,21 @@ public class CoverViewTool{
 	 * 点击CoverView刷新监听事件实例
 	 */
 	private OnTapRefreshListener mOnTapRefreshListener;
-
+	/**
+	 * 用于储存并排序CoverView里的子View
+	 */
 	private List<View> mViews;
 	
-	private Context mContext;
-	
 	private Activity mActivity;
-	
+	/**
+	 * 构造方法
+	 * @param activity
+	 */
 	public CoverViewTool(Activity activity) {
 		mActivity=activity;
-		mContext=activity.getApplicationContext();
 		mRootView = (FrameLayout)activity.getWindow().getDecorView().findViewById(android.R.id.content);
 	}
 	
-
-	/**
-	 * 设置刷新监听事件
-	 * 
-	 * @param listener
-	 */
-	public void setOnTapRefreshListener(OnTapRefreshListener listener) {
-		mOnTapRefreshListener = listener;
-	}
-
 	/**
 	 * 遮住view所在的区域
 	 * 
@@ -110,6 +104,7 @@ public class CoverViewTool{
 			public void onLayoutChange(View v, int left, int top, int right,
 					int bottom, int oldLeft, int oldTop, int oldRight,
 					int oldBottom) {
+				Log.d(mCoverViewTag, "onLayoutChange");
 				initCoverView();
 				mCoverView.setX(left);
 				mCoverView.setY(top);
@@ -161,9 +156,10 @@ public class CoverViewTool{
 		isTapRefreshing = true;
 		mCoverView.showProgressBar();
 		mCoverView.hideImageView();
+		mCoverView.hideButton();
 		mCoverView.setLoadingText("正在加载，请稍候");
 	}
-
+	
 	/**
 	 * 更新CoverView状态为刷新成功
 	 */
@@ -181,19 +177,19 @@ public class CoverViewTool{
 		switch (type) {
 		case REFRESH_NetworkError:
 			mCoverView.mImageView.setImageResource(refreshNetErrorResID);
-			mCoverView.setLoadingText("请求超时，请检查网络连接");
+			mCoverView.mTextView.setText(refreshNetErrorText);
 			break;
 		case REFRESH_NoDatas:
 			mCoverView.mImageView.setImageResource(refreshNoDatasResID);
-			mCoverView.setLoadingText("没有数据");
+			mCoverView.mTextView.setText(refreshNoDatasText);
 			break;
 		case REFRESH_Crash:
 			mCoverView.mImageView.setImageResource(refreshCrashResID);
-			mCoverView.setLoadingText("服务器崩溃了");
+			mCoverView.mTextView.setText(refreshCrashText);
 			break;
 		default:
 			mCoverView.mImageView.setImageResource(refreshNetErrorResID);
-			mCoverView.setLoadingText("出错了");
+			mCoverView.mTextView.setText(refreshNetErrorText);
 			break;
 		}
 		mCoverView.showImageView();
@@ -208,6 +204,15 @@ public class CoverViewTool{
 	 */
 	public interface OnTapRefreshListener {
 		void onTapRefresh();
+	}
+
+	/**
+	 * 设置刷新监听事件
+	 * 
+	 * @param listener
+	 */
+	public void setOnTapRefreshListener(OnTapRefreshListener listener) {
+		mOnTapRefreshListener = listener;
 	}
 
 	/**
@@ -231,32 +236,22 @@ public class CoverViewTool{
 	}
 
 	/**
-	 * 设置CoverView图片Drawable
-	 * 
-	 * @param drawable
-	 */
-	public CoverView setCoverViewImageDrawable(Drawable drawable) {
-		mCoverView.mImageView.setImageDrawable(drawable);
-		return mCoverView;
-	}
-
-	/**
-	 * 设置CoverView图片bitmap
-	 * 
-	 * @param bm
-	 */
-	public CoverView setCoverViewImageBitmap(Bitmap bm) {
-		mCoverView.mImageView.setImageBitmap(bm);
-		return mCoverView;
-	}
-
-	/**
 	 * 设置CoverView提示文字
 	 * 
 	 * @param text
 	 */
-	public CoverView setCoverViewText(String text) {
-		mCoverView.mTextView.setText(text);
+	public CoverView setCoverViewText(int type,String text) {
+		switch (type) {
+		case REFRESH_NetworkError:
+			refreshNetErrorText = text;
+			break;
+		case REFRESH_NoDatas:
+			refreshNoDatasText = text;
+			break;
+		case REFRESH_Crash:
+			refreshCrashText = text;
+			break;
+		}
 		return mCoverView;
 	}
 
@@ -316,11 +311,12 @@ public class CoverViewTool{
 	 */
 	private CoverView initCoverView() {
 		if (mCoverView == null) {
-			mCoverView = CoverView.build(mContext, mRootView);
-			int childCount = mCoverView.inflateView.getChildCount();
+			mCoverView = CoverView.build(mActivity, mRootView);
+			mCoverView.init(mActivity);
+			int childCount = mCoverView.getChildCount();
 			mViews = new ArrayList<View>();
 			for (int i = 0; i < childCount; i++) {
-				mViews.add(mCoverView.inflateView.getChildAt(i));
+				mViews.add(mCoverView.getChildAt(i));
 			}
 			mCoverView.setOnTouchListener(new OnTouchListener() {
 
@@ -338,11 +334,34 @@ public class CoverViewTool{
 				}
 			});
 		}
+		mCoverView.addOnLayoutChangeListener(new OnLayoutChangeListener() {
+			
+			@Override
+			public void onLayoutChange(View v, int left, int top, int right,
+					int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+				int childTotalHeight=0;
+				int[] childsHeights=new int[mCoverView.getChildCount()];
+				for (int i = 0; i < mCoverView.getChildCount(); i++) {
+					View view=mCoverView.getChildAt(i);
+					if (view.getVisibility()==View.VISIBLE) {
+						RelativeLayout.LayoutParams lp=(RelativeLayout.LayoutParams) view.getLayoutParams();
+						childsHeights[i]=view.getHeight();
+						if (i>=1) {
+							childsHeights[i-1]+=lp.topMargin;
+						}
+						childTotalHeight+=view.getHeight();
+					}else {
+						childsHeights[i]=0;
+					}
+				}
+				float shouldSetY=(mCoverView.getHeight()-childTotalHeight)/2;
+				for (int i = 0; i < childsHeights.length; i++) {
+					RelativeLayout.LayoutParams lp=(RelativeLayout.LayoutParams) mCoverView.getChildAt(i).getLayoutParams();
+					mCoverView.getChildAt(i).setY(shouldSetY);
+					shouldSetY+=childsHeights[i];
+				}
+			}
+		});
 		return mCoverView;
 	}
-
-	private void setViewPosition() {
-
-	}
-
 }
