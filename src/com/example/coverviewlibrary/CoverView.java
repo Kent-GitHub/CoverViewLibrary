@@ -1,5 +1,7 @@
 package com.example.coverviewlibrary;
 
+import java.util.List;
+
 import com.example.coverviewlibrary.R;
 
 import android.content.Context;
@@ -13,10 +15,11 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 
-public class CoverView extends LinearLayout{
+public class CoverView extends RelativeLayout{
 	
 	public TextView mTextView;
 		
@@ -25,6 +28,8 @@ public class CoverView extends LinearLayout{
 	public ProgressBar mProgressBar;
 	
 	public Button mButton;
+	
+	private List<View> mViewList;
 	
 	public CoverView(Context context) {
 		super(context);
@@ -91,9 +96,9 @@ public class CoverView extends LinearLayout{
 		hideButton();
 	}
 	
-	private static LinearLayout inflateView;
+	protected static RelativeLayout inflateView;
 	public static CoverView build(Context context,ViewGroup view){
-		inflateView= (LinearLayout) LayoutInflater.from(context).inflate(R.layout.cover_view_layout,view,false);
+		inflateView= (RelativeLayout) LayoutInflater.from(context).inflate(R.layout.cover_view_layout,view,false);
 		CoverView instance=new CoverView(context);
 		instance.addView(inflateView);
 		return instance;

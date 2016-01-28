@@ -4,5 +4,7 @@
     <string name="app_name">CoverViewLibrary</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="cover_view_tv_loading">正在加载，请稍候</string>
+    <string name="cover_view_btn_reload">重新加载</string>
 
 </resources>

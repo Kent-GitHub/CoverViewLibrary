@@ -1,33 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical">
 
     <ProgressBar
+        android:layout_centerHorizontal="true"
         android:id="@+id/cover_view_progressBar"
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="123dp" />
 		
     <ImageView
+        android:layout_centerHorizontal="true"
         android:id="@+id/cover_view_image"
+        android:layout_below="@id/cover_view_progressBar"
         android:layout_width="wrap_content"
         android:layout_height="123dp"
         android:src="@drawable/refresh_loadfailed" />
 
     <TextView
+        android:layout_centerHorizontal="true"
         android:id="@+id/cover_view_info"
+        android:layout_below="@id/cover_view_image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="正在加载，请稍候"
+        android:text="@string/cover_view_tv_loading"
         android:textColor="#000000" />
 
     <Button
+        android:layout_centerHorizontal="true"
         android:id="@+id/cover_view_btn_refresh"
+        android:layout_below="@id/cover_view_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="重新加载" />
+        android:text="@string/cover_view_btn_reload" /> 
 
-</LinearLayout>
+</RelativeLayout>
