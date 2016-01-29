@@ -21,14 +21,37 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 public class CoverViewTool{
+	/**
+	 * 加载状态：正在加载
+	 */
 	public static final int REFRESH_Loading = 0;
+	/**
+	 * 加载状态：网络出错
+	 */
 	public static final int REFRESH_NetworkError = 1;
+	/**
+	 * 加载状态：没有数据
+	 */
 	public static final int REFRESH_NoDatas = 2;
+	/**
+	 * 加载状态：服务器崩溃了
+	 */
 	public static final int REFRESH_Crash = 3;
+	/**
+	 * 加载状态：加载成功
+	 */
 	public static final int REFRESH_Succeed = 4;
-	
+	/**
+	 * 加载状态为网络出错时CoverView显示的图片资源
+	 */
 	private int refreshNetErrorResID = R.drawable.refresh_loadfailed;
+	/**
+	 * 加载状态为没有数据时CoverView显示的图片资源
+	 */
 	private int refreshNoDatasResID = R.drawable.refresh_empty;
+	/**
+	 * 加载状态为服务器崩溃时CoverView显示的图片资源
+	 */
 	private int refreshCrashResID = R.drawable.refresh_crash;
 	
 	private String refreshNetErrorText = "请求超时，请检查网络连接";
@@ -72,7 +95,6 @@ public class CoverViewTool{
 	
 	/**
 	 * 遮住view所在的区域
-	 * 
 	 * @param view
 	 */
 	public void cover(final View view) {
@@ -98,13 +120,15 @@ public class CoverViewTool{
 		mCoverView.setTag(mCoverViewTag);
 		mRootView.addView(mCoverView);
 		stateRefreshLoading();
+		/**
+		 * 被遮住的View区域发生改变时、CoverView跟着改变
+		 */
 		view.addOnLayoutChangeListener(new OnLayoutChangeListener() {
 
 			@Override
 			public void onLayoutChange(View v, int left, int top, int right,
 					int bottom, int oldLeft, int oldTop, int oldRight,
 					int oldBottom) {
-				Log.d(mCoverViewTag, "onLayoutChange");
 				initCoverView();
 				mCoverView.setX(left);
 				mCoverView.setY(top);
@@ -170,6 +194,7 @@ public class CoverViewTool{
 
 	/**
 	 * 更新CoverView状态为刷新失败
+	 * 包含网络错误、数据为空、服务器崩溃三种情况
 	 */
 	public void stateRefreshFailed(int type) {
 		isTapRefreshing = false;
@@ -264,16 +289,20 @@ public class CoverViewTool{
 		mCoverView.setBackgroundColor(color);
 		return mCoverView;
 	}
-
+	/**
+	 * 为CoverView子View设置先后顺序：传入的4个数分别代表子View在CoverView中的位置。
+	 * 数字应该是0~3的数（包括0、3）且不重复
+	 * @param progressbar
+	 * @param imageView
+	 * @param TextView
+	 * @param button
+	 * @return
+	 */
 	public CoverView setCoverViewOrder(int progressbar, int imageView,
 			int TextView, int button) {
 		if (progressbar >= 0 && progressbar < 4 && imageView >= 0
 				&& imageView < 4 && TextView >= 0 && TextView < 4
 				&& button >= 0 && button < 4) {
-
-			Log.d("setCoverViewOrder", "progressbar:" + progressbar
-					+ ", imageView" + imageView + ", TextView" + TextView
-					+ ", button" + button);
 			mViews.set(progressbar, mCoverView.mProgressBar);
 			mViews.set(imageView, mCoverView.mImageView);
 			mViews.set(TextView, mCoverView.mTextView);
@@ -294,12 +323,16 @@ public class CoverViewTool{
 
 		return mCoverView;
 	}
-
-	public CoverView setMargins(View view, int left, int top, int right,
-			int bottom) {
+	/**
+	 * 为CoverView的子View设置MarginTop
+	 * @param view
+	 * @param top
+	 * @return
+	 */
+	public CoverView setMarginTop(View view, int top) {
 		RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) view
 				.getLayoutParams();
-		lp.setMargins(left, top, right, bottom);
+		lp.setMargins(0, top, 0, 0);
 		view.setLayoutParams(lp);
 		return mCoverView;
 	}
@@ -311,8 +344,9 @@ public class CoverViewTool{
 	 */
 	private CoverView initCoverView() {
 		if (mCoverView == null) {
+			Log.d(mCoverViewTag, "CoverView Created");
 			mCoverView = CoverView.build(mActivity, mRootView);
-			mCoverView.init(mActivity);
+//			mCoverView.init(mActivity);
 			int childCount = mCoverView.getChildCount();
 			mViews = new ArrayList<View>();
 			for (int i = 0; i < childCount; i++) {
@@ -334,6 +368,7 @@ public class CoverViewTool{
 				}
 			});
 		}
+		//修改CoverView子View的MarginTop
 		mCoverView.addOnLayoutChangeListener(new OnLayoutChangeListener() {
 			
 			@Override
@@ -342,7 +377,7 @@ public class CoverViewTool{
 				int childTotalHeight=0;
 				int[] childsHeights=new int[mCoverView.getChildCount()];
 				for (int i = 0; i < mCoverView.getChildCount(); i++) {
-					View view=mCoverView.getChildAt(i);
+					View view=mViews.get(i);
 					if (view.getVisibility()==View.VISIBLE) {
 						RelativeLayout.LayoutParams lp=(RelativeLayout.LayoutParams) view.getLayoutParams();
 						childsHeights[i]=view.getHeight();
@@ -356,8 +391,8 @@ public class CoverViewTool{
 				}
 				float shouldSetY=(mCoverView.getHeight()-childTotalHeight)/2;
 				for (int i = 0; i < childsHeights.length; i++) {
-					RelativeLayout.LayoutParams lp=(RelativeLayout.LayoutParams) mCoverView.getChildAt(i).getLayoutParams();
-					mCoverView.getChildAt(i).setY(shouldSetY);
+					RelativeLayout.LayoutParams lp=(RelativeLayout.LayoutParams) mViews.get(i).getLayoutParams();
+					mViews.get(i).setY(shouldSetY);
 					shouldSetY+=childsHeights[i];
 				}
 			}

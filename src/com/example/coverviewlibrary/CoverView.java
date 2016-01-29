@@ -53,7 +53,7 @@ public class CoverView extends RelativeLayout{
 		return this;
 	}
 	public CoverView hideProgressBar(){
-		mProgressBar.setVisibility(View.GONE);
+			mProgressBar.setVisibility(View.GONE);
 		return this;
 	}
 
@@ -74,15 +74,12 @@ public class CoverView extends RelativeLayout{
 		return this;
 	}
 	
-	public void init(Context context) {
-		mTextView=(TextView) mCoverView.findViewById(R.id.cover_view_info);
-		mImageView=(ImageView) mCoverView.findViewById(R.id.cover_view_image);
-		mProgressBar=(ProgressBar) mCoverView.findViewById(R.id.cover_view_progressBar);
-		mButton=(Button) mCoverView.findViewById(R.id.cover_view_btn_refresh);
-		hideImageView();
-		hideButton();
-	}
-	
+	/**
+	 * 生成一个CoverView实例
+	 * @param context
+	 * @param view
+	 * @return
+	 */
 	public static CoverView build(Context context,ViewGroup view){
 		mCoverView = (CoverView) LayoutInflater.from(context).inflate(R.layout.cover_view_layout,view,false);
 		return mCoverView;
